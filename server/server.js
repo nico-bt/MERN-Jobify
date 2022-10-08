@@ -1,5 +1,7 @@
 const express = require('express')
 const app = express()
+require('dotenv').config()
+const mongoose = require("mongoose")
 
 const notFoundMiddleware = require('./middleware/notFoundMiddleware.js')
 const errorHandlerMiddleware = require('./middleware/error-handler.js')
@@ -19,8 +21,14 @@ app.use(notFoundMiddleware)
 app.use(errorHandlerMiddleware)
 
 
-// Running app
+//Connect to DB and run app
 //************************************************************************************/
-app.listen(port, ()=>{
-    console.log("Running on port", port);
-})
+mongoose.connect(process.env.MONGODB_URI)
+    .then(
+        app.listen(process.env.PORT, ()=>{
+            console.log(`Connected to DB & running on port: ${process.env.PORT}`)
+        })
+    )
+    .catch(
+        (err)=>console.log(err)
+    )
