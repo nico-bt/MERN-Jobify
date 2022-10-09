@@ -2,7 +2,7 @@ const validator = require('validator');
 const User = require('../models/user');
 
 
-const register = async (req, res) => {
+const register = async (req, res, next) => {
     const {name, email, password, location} = req.body
     
     if(!name || !email || !password) {
@@ -17,9 +17,8 @@ const register = async (req, res) => {
         const newUser = await User.create({name, email, password, location})
         res.status(201).json(newUser)
     } catch (error) {
-        console.log(error)
-        res.status(400).json(error)
-
+        // Errors coming from Db Schema are pass to the error-handler middleware
+        next(error)
     }
 }
 
