@@ -8,7 +8,9 @@ const errorHandlerMiddleware = require('./middleware/error-handler.js')
 
 app.use(express.json())
 
+// Import routes
 const authRoutes = require("./routes/authRoutes")
+const jobRoutes = require("./routes/jobRoutes")
 
 const port = process.env.PORT || 5000
 
@@ -19,6 +21,7 @@ app.get('/', (req, res) => {
 })
 
 app.use("/api/auth", authRoutes)
+app.use("/api/jobs", jobRoutes)
 
 // Middleware - 404 not found and Error-handler
 //************************************************************************************/
