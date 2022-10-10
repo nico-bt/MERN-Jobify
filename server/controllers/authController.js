@@ -1,6 +1,7 @@
 const validator = require('validator');
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
+const jwt = require("jsonwebtoken")
 
 // Register a new user
 //********************************************************************************/
@@ -21,10 +22,15 @@ const register = async (req, res, next) => {
         const hashedPassword = await bcrypt.hash(password, salt)
         
         // Create user in db
-        const newUser = await User.create({name, email, password: hashedPassword, location})
+        let newUser = await User.create({name, email, password: hashedPassword, location})
         
-        newUser.password = undefined  // To not include password in response
-        res.status(201).json(newUser)
+        //Token
+        const token = jwt.sign({userId: newUser._id}, process.env.JWT_SECRET, {expiresIn: "1d"})
+        
+        // To not include password in response
+        newUser.password = undefined  
+        
+        res.status(201).json({ token, user: newUser })
     } catch (error) {
         // Errors coming from Db Schema are passed to the error-handler middleware (eg-> email: unique)
         next(error)
