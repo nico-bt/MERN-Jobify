@@ -17,7 +17,7 @@ function Register() {
 
   // global context and useNavigate later
   // Introduce appContext to get global values
-  const {isLoading, showAlert, displayAlert} = useAppContext()
+  const {isLoading, showAlert, displayAlert, registerUser} = useAppContext()
 
   const toggleMember = () => {
     setValues({...values, isMember: !values.isMember})
@@ -35,7 +35,14 @@ function Register() {
       displayAlert()
       return
     }
-    console.log(e.target)
+
+    const currentUser = {name, email, password}
+    if(isMember) {
+      console.log("Already a member");
+    } else {
+      registerUser(currentUser)
+    }
+
   }
   
   return (
@@ -72,7 +79,7 @@ function Register() {
           handleChange={handleChange}
         />
 
-        <button type='submit' className='btn btn-block'>
+        <button type='submit' className='btn btn-block' disabled={isLoading}>
           submit
         </button>
 
