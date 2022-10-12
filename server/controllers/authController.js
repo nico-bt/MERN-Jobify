@@ -40,8 +40,35 @@ const register = async (req, res, next) => {
 
 // Login existing user
 //********************************************************************************/
-const login = (req, res) => {
-    res.send("Login user")
+const login = async (req, res) => {
+    const {email, password} = req.body
+
+    // Check for empty/valid inputs
+    if(!email || !password) {
+        return res.status(400).json({msg: "Please enter all fields"})
+    }
+    if (!validator.isEmail(email)) {
+        return res.status(400).json({msg: "Please enter a valid email"})
+    }
+
+    // Check if user exists in db
+    const userInDb = await User.findOne({email})
+    
+    if(!userInDb) {
+        return res.status(401).json({msg: "Email not registered. Register first please"})
+    } else {
+        // Check if password matches with hashed password in db
+        const passwordMatch = await bcrypt.compare(password, userInDb.password )
+        if (!passwordMatch) {
+            return res.status(401).json({msg: "Incorrect Credentials"})
+        }
+        
+        // User ok and password ok --> Generate Token and return it
+        const token = jwt.sign({userId: userInDb._id}, process.env.JWT_SECRET, {expiresIn: "1d"})        
+        userInDb.password = undefined
+        
+        res.status(200).json({ token, user: userInDb })    
+    }
 }
 
 
