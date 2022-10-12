@@ -65,14 +65,17 @@ const reducer = (state, action) => {
 // Context
 // ***********************************************************
 
+const token = localStorage.getItem("token")
+const user = localStorage.getItem("user")
+
 const initialState = {
   isLoading: false,
   showAlert: false,
   alertText: '',
   alertType: '',
-  user: null,
-  token: null,
-  userLocation: "",
+  user: user? JSON.parse(user) : null,
+  token: token,
+  userLocation: user? JSON.parse(user).location : "",
   jobLocation: ""
 }
 
@@ -81,15 +84,29 @@ const AppContext = React.createContext()
 const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState)
 
+  // Alert functions show/clear:
+  //---------------------------------
   const displayAlert = () =>{
     dispatch({type: DISPLAY_ALERT})
     setTimeout(() => {
-        clearAlert()
+      clearAlert()
     }, 3000);
   }
-
+  
   const clearAlert = () =>{
     dispatch({type: CLEAR_ALERT})
+  }
+  
+  //Local storage functions:
+  //---------------------------------
+  const addUserToLocalStorage = ({user, token, location}) => {
+    localStorage.setItem("user", JSON.stringify(user))
+    localStorage.setItem("token", token)
+  }
+
+  const removeUserFromLocalStorage = () => {
+    localStorage.removeItem("user")
+    localStorage.removeItem("token")
   }
 
   const registerUser = async (currentUser) => {
@@ -99,6 +116,7 @@ const AppProvider = ({ children }) => {
       // console.log(response.data)
       const {token, user} = response.data
       dispatch({type: REGISTER_USER_SUCCESS, payload: {token, user}})
+      addUserToLocalStorage({user, token})
     } catch (error) {
       console.log(error)
       dispatch({type: REGISTER_USER_ERROR, payload: {msg: error.response.data.msg}})
