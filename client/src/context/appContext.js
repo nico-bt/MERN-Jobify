@@ -10,6 +10,10 @@ const REGISTER_USER_BEGIN = "REGISTER_USER_BEGIN"
 const REGISTER_USER_SUCCESS = "REGISTER_USER_SUCCESS"
 const REGISTER_USER_ERROR = "REGISTER_USER_ERROR"
 
+const LOGIN_USER_BEGIN = "LOGIN_USER_BEGIN"
+const LOGIN_USER_SUCCESS = "LOGIN_USER_SUCCESS"
+const LOGIN_USER_ERROR = "LOGIN_USER_ERROR"
+
 
 // Reducer
 // ***********************************************************
@@ -49,6 +53,32 @@ const reducer = (state, action) => {
           }
 
         case REGISTER_USER_ERROR:
+          return {
+            ...state,
+            isLoading: false,
+            showAlert: true,
+            alertText: action.payload.msg,
+            alertType: 'danger',
+          }
+    
+        case LOGIN_USER_BEGIN: 
+          return {
+            ...state, isLoading: true
+          }
+
+        case LOGIN_USER_SUCCESS:
+          return {
+            ...state,
+            isLoading: false,
+            token: action.payload.token,
+            user: action.payload.user,
+            userLocation: action.payload.user.location,
+            showAlert: true,
+            alertType: "success",
+            alertText: "Login Successful! Redirecting..."
+          }
+
+        case LOGIN_USER_ERROR:
           return {
             ...state,
             isLoading: false,
@@ -108,15 +138,19 @@ const AppProvider = ({ children }) => {
     localStorage.removeItem("user")
     localStorage.removeItem("token")
   }
+  
 
+  // Register and Login User functions:
+  //---------------------------------
   const registerUser = async (currentUser) => {
     dispatch({type: REGISTER_USER_BEGIN})
     try {
       const response = await axios.post("/api/auth/register", currentUser)
-      // console.log(response.data)
       const {token, user} = response.data
+      
       dispatch({type: REGISTER_USER_SUCCESS, payload: {token, user}})
       addUserToLocalStorage({user, token})
+
     } catch (error) {
       console.log(error)
       dispatch({type: REGISTER_USER_ERROR, payload: {msg: error.response.data.msg}})
@@ -126,9 +160,27 @@ const AppProvider = ({ children }) => {
       clearAlert()
     }, 3000)
   }
+  
+  const loginUser = async (currentUser) => {
+    dispatch({type: LOGIN_USER_BEGIN})
+    try {
+      const response = await axios.post("api/auth/login", currentUser)
+      const {token, user} = response.data
+
+      dispatch({type: LOGIN_USER_SUCCESS, payload: {token, user}})
+      addUserToLocalStorage({user, token})
+
+    } catch (error) {
+      dispatch({type: LOGIN_USER_ERROR, payload: {msg: error.response.data.msg}})
+    }
+    // Succes or Error shows an alert. Clear after seconds
+    setTimeout(()=>{
+      clearAlert()
+    }, 3000)
+  }
 
   return (
-    <AppContext.Provider value={{...state, displayAlert, clearAlert, registerUser}}>
+    <AppContext.Provider value={{...state, displayAlert, clearAlert, registerUser, loginUser}}>
       {children}
     </AppContext.Provider>
   )
