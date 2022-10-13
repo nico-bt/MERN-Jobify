@@ -3,4 +3,4 @@ import Landing from "./Landing";
 import ProtectedRoute from "./ProtectedRoute";
 import Register from "./Register";
 
-export {Error, Landing, Register, ProtectedRoute}
+export {Error, Landing, Register, ProtectedRoute }
