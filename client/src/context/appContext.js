@@ -14,6 +14,7 @@ const LOGIN_USER_BEGIN = "LOGIN_USER_BEGIN"
 const LOGIN_USER_SUCCESS = "LOGIN_USER_SUCCESS"
 const LOGIN_USER_ERROR = "LOGIN_USER_ERROR"
 
+const TOGGLE_SIDEBAR = "TOGGLE_SIDEBAR"
 
 // Reducer
 // ***********************************************************
@@ -87,6 +88,12 @@ const reducer = (state, action) => {
             alertType: 'danger',
           }
     
+        case TOGGLE_SIDEBAR:
+          return {
+            ...state,
+            showSidebar: !state.showSidebar
+          }
+    
         default:
             break;
     }
@@ -106,7 +113,8 @@ const initialState = {
   user: user? JSON.parse(user) : null,
   token: token,
   userLocation: user? JSON.parse(user).location : "",
-  jobLocation: ""
+  jobLocation: "",
+  showSidebar: false
 }
 
 const AppContext = React.createContext()
@@ -150,7 +158,7 @@ const AppProvider = ({ children }) => {
       
       dispatch({type: REGISTER_USER_SUCCESS, payload: {token, user}})
       addUserToLocalStorage({user, token})
-
+      
     } catch (error) {
       console.log(error)
       dispatch({type: REGISTER_USER_ERROR, payload: {msg: error.response.data.msg}})
@@ -166,10 +174,10 @@ const AppProvider = ({ children }) => {
     try {
       const response = await axios.post("api/auth/login", currentUser)
       const {token, user} = response.data
-
+      
       dispatch({type: LOGIN_USER_SUCCESS, payload: {token, user}})
       addUserToLocalStorage({user, token})
-
+      
     } catch (error) {
       dispatch({type: LOGIN_USER_ERROR, payload: {msg: error.response.data.msg}})
     }
@@ -179,8 +187,16 @@ const AppProvider = ({ children }) => {
     }, 3000)
   }
 
+
+  // Toggle btns from navbar
+  //---------------------------------
+  
+  const toggleSidebar = () => {
+    dispatch({type: TOGGLE_SIDEBAR})
+  }
+
   return (
-    <AppContext.Provider value={{...state, displayAlert, clearAlert, registerUser, loginUser}}>
+    <AppContext.Provider value={{...state, displayAlert, clearAlert, registerUser, loginUser, toggleSidebar}}>
       {children}
     </AppContext.Provider>
   )
