@@ -44,17 +44,20 @@ const Wrapper = styled.aside`
     padding-top: 2rem;
     display: flex;
     flex-direction: column;
+    gap: 6px;
   }
   .nav-link {
     display: flex;
     align-items: center;
     color: var(--grey-500);
-    padding: 1rem 0;
+    padding: 0.9rem;
     text-transform: capitalize;
     transition: var(--transition);
+    border-radius: 8px;
   }
   .nav-link:hover {
     color: var(--grey-900);
+    background-color: lightgrey;
   }
   .nav-link:hover .icon {
     color: var(--primary-500);
@@ -68,6 +71,8 @@ const Wrapper = styled.aside`
   }
   .active {
     color: var(--grey-900);
+    background-color: lightgrey;
+    
   }
   .active .icon {
     color: var(--primary-500);
