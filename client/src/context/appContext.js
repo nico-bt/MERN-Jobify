@@ -16,6 +16,8 @@ const LOGIN_USER_ERROR = "LOGIN_USER_ERROR"
 
 const TOGGLE_SIDEBAR = "TOGGLE_SIDEBAR"
 
+const LOG_OUT = "LOG_OUT"
+
 // Reducer
 // ***********************************************************
 const reducer = (state, action) => {
@@ -93,7 +95,15 @@ const reducer = (state, action) => {
             ...state,
             showSidebar: !state.showSidebar
           }
-    
+
+          case LOG_OUT:
+            return {
+              ...initialState,
+              user: null,
+              token: null,
+              userLocation: ""
+            }
+
         default:
             break;
     }
@@ -187,6 +197,11 @@ const AppProvider = ({ children }) => {
     }, 3000)
   }
 
+  const logOut = () => {
+    removeUserFromLocalStorage()
+    dispatch({type: LOG_OUT})
+  }
+
 
   // Toggle btns from navbar
   //---------------------------------
@@ -196,7 +211,7 @@ const AppProvider = ({ children }) => {
   }
 
   return (
-    <AppContext.Provider value={{...state, displayAlert, clearAlert, registerUser, loginUser, toggleSidebar}}>
+    <AppContext.Provider value={{...state, displayAlert, clearAlert, registerUser, loginUser, toggleSidebar, logOut}}>
       {children}
     </AppContext.Provider>
   )
