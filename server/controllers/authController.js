@@ -74,8 +74,32 @@ const login = async (req, res) => {
 
 // Update an user
 //********************************************************************************/
-const updateUser = (req, res) => {
-    res.json({msg:"Update user"})
+const updateUser = async (req, res) => {
+    const {email, name, location} = req.body
+    
+    if(!email || !name || !location) {
+        return res.status(400).json({msg: "Please provide all values"})
+    }
+
+    try {
+        // req.userId comes from middleware/auth
+        const user = await User.findOne({_id: req.userId})
+
+        // update values:
+        user.email = email
+        user.name = name
+        user.location = location
+        await user.save()
+
+        //Token
+        const token = jwt.sign({userId: user._id}, process.env.JWT_SECRET, {expiresIn: "1d"})
+
+        user.password = undefined
+        res.status(201).json({ token, user })
+
+    } catch (error) {
+        res.status(400).json(error)
+    }
 }
 
 

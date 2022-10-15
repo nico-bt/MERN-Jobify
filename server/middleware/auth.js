@@ -20,7 +20,7 @@ const authenticateUser = async (req, res, next) => {
             
             if(user) {
                 // Add userId to req object
-                req.user = payload.userId
+                req.userId = payload.userId
                 return next()
             } else {
                 return res.status(401).json({msg: "Not authorized. User not longer exists"})
