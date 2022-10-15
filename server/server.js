@@ -3,8 +3,10 @@ const app = express()
 require('dotenv').config()
 const mongoose = require("mongoose")
 
+// import middleware
 const notFoundMiddleware = require('./middleware/notFoundMiddleware.js')
 const errorHandlerMiddleware = require('./middleware/error-handler.js')
+const authenticateUser = require("./middleware/auth")
 
 app.use(express.json())
 
@@ -15,13 +17,9 @@ const jobRoutes = require("./routes/jobRoutes")
 const port = process.env.PORT || 5000
 
 // Routes
-//************************************************************************************/
-app.get('/', (req, res) => {
-  res.send('Hello World')
-})
-
+//************************************************************************************
 app.use("/api/auth", authRoutes)
-app.use("/api/jobs", jobRoutes)
+app.use("/api/jobs", authenticateUser, jobRoutes)
 
 // Middleware - 404 not found and Error-handler
 //************************************************************************************/

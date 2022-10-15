@@ -75,7 +75,7 @@ const login = async (req, res) => {
 // Update an user
 //********************************************************************************/
 const updateUser = (req, res) => {
-    res.send("Update user")
+    res.json({msg:"Update user"})
 }
 
 
