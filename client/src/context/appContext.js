@@ -17,6 +17,11 @@ const LOGIN_USER_ERROR = "LOGIN_USER_ERROR"
 const TOGGLE_SIDEBAR = "TOGGLE_SIDEBAR"
 
 const LOG_OUT = "LOG_OUT"
+const UPDATE_USER = "UPDATE_USER"
+
+const UPDATE_USER_BEGIN = 'UPDATE_USER_BEGIN'
+const UPDATE_USER_SUCCESS = 'UPDATE_USER_SUCCESS'
+const UPDATE_USER_ERROR = 'UPDATE_USER_ERROR'
 
 // Reducer
 // ***********************************************************
@@ -96,13 +101,38 @@ const reducer = (state, action) => {
             showSidebar: !state.showSidebar
           }
 
-          case LOG_OUT:
-            return {
-              ...initialState,
-              user: null,
-              token: null,
-              userLocation: ""
-            }
+        case LOG_OUT:
+          return {
+            ...initialState,
+            user: null,
+            token: null,
+            userLocation: ""
+          }
+
+        case UPDATE_USER_BEGIN: 
+          return { ...state, isLoading: true }
+            
+        case UPDATE_USER_SUCCESS: 
+          return {
+            ...state,
+            isLoading: false,
+            token:action.payload.token,
+            user: action.payload.user,
+            userLocation: action.payload.location,
+            jobLocation: action.payload.location,
+            showAlert: true,
+            alertType: 'success',
+            alertText: 'User Profile Updated!',
+          }
+            
+        case UPDATE_USER_ERROR: 
+          return {
+            ...state,
+            isLoading: false,
+            showAlert: true,
+            alertType: 'danger',
+            alertText: action.payload.msg,
+          }
 
         default:
             break;
@@ -132,6 +162,37 @@ const AppContext = React.createContext()
 const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState)
 
+  // Axios setup (base url and add token)
+  //--------------------------------------------
+  const authFetch = axios.create({
+    baseURL: '/api',
+  })
+
+  // request interceptor (from axios docs - Similar to middleware, previous to request we add the token)
+  authFetch.interceptors.request.use(
+    (config) => {
+      config.headers['Authorization'] = `Bearer ${state.token}`
+      return config
+    },
+    (error) => {
+      return Promise.reject(error)
+    }
+  )
+// response interceptor
+  authFetch.interceptors.response.use(
+    (response) => {
+      return response
+    },
+    (error) => {
+      console.log(error)
+      if (error.response.status === 401) {
+        logOut()
+        console.log('AUTH ERROR')
+      }
+      return Promise.reject(error)
+    }
+  )
+
   // Alert functions show/clear:
   //---------------------------------
   const displayAlert = () =>{
@@ -158,8 +219,8 @@ const AppProvider = ({ children }) => {
   }
   
 
-  // Register and Login User functions:
-  //---------------------------------
+  // User functions --> Register / Login / Logout / Update functions:
+  //-------------------------------------------------------------------------
   const registerUser = async (currentUser) => {
     dispatch({type: REGISTER_USER_BEGIN})
     try {
@@ -179,6 +240,7 @@ const AppProvider = ({ children }) => {
     }, 3000)
   }
   
+
   const loginUser = async (currentUser) => {
     dispatch({type: LOGIN_USER_BEGIN})
     try {
@@ -196,22 +258,49 @@ const AppProvider = ({ children }) => {
       clearAlert()
     }, 3000)
   }
+  
 
   const logOut = () => {
     removeUserFromLocalStorage()
     dispatch({type: LOG_OUT})
   }
+  
 
+  const updateUser = async (currentUser) => {
+    dispatch({ type: UPDATE_USER_BEGIN })
+    try {
+      const { data } = await authFetch.patch('/auth/updateUser', currentUser)
+  
+      // no token
+      const { user, token } = data
+  
+      dispatch({
+        type: UPDATE_USER_SUCCESS,
+        payload: { user, token }
+      })
+  
+      addUserToLocalStorage({ user, token })
+    } catch (error) {
+      // If is NOT Authorized, redirect to login/register in the axios interceptor. Dont show alert
+      if(error.response.status !== 401) {
+        dispatch({
+          type: UPDATE_USER_ERROR,
+          payload: { msg: error.response.data.msg },
+        })
+      }
+    }
+    setTimeout(()=>{clearAlert()}, 3000)
+  }
 
   // Toggle btns from navbar
   //---------------------------------
-  
   const toggleSidebar = () => {
     dispatch({type: TOGGLE_SIDEBAR})
   }
 
+
   return (
-    <AppContext.Provider value={{...state, displayAlert, clearAlert, registerUser, loginUser, toggleSidebar, logOut}}>
+    <AppContext.Provider value={{...state, displayAlert, clearAlert, registerUser, loginUser, toggleSidebar, logOut, updateUser}}>
       {children}
     </AppContext.Provider>
   )
