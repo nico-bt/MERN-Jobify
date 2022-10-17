@@ -30,6 +30,9 @@ const CREATE_JOB_BEGIN = 'CREATE_JOB_BEGIN'
 const CREATE_JOB_SUCCESS = 'CREATE_JOB_SUCCESS'
 const CREATE_JOB_ERROR = 'CREATE_JOB_ERROR'
 
+const GET_JOBS_BEGIN = 'GET_JOBS_BEGIN'
+const GET_JOBS_SUCCESS = 'GET_JOBS_SUCCESS'
+
 
 // Reducer
 // ***********************************************************
@@ -172,8 +175,18 @@ const reducer = (state, action) => {
               alertText: action.payload.msg,
             }
 
+          case GET_JOBS_BEGIN:
+            return { ...state, isLoading: true, showAlert: false }
+          
+          case GET_JOBS_SUCCESS:
+            return {
+              ...state,
+              isLoading: false,
+              jobs: action.payload.jobs,
+            }
+
         default:
-            break;
+          break;
     }
 }
 
@@ -198,11 +211,11 @@ const initialState = {
   editJobId: '',
   position: '',
   company: '',
-  // jobLocation
   jobTypeOptions: ['full-time', 'part-time', 'remote', 'internship'],
   jobType: 'full-time',
   statusOptions: ['pending', 'interview', 'declined'],
   status: 'pending',
+  jobs: []
 }
 
 const AppContext = React.createContext()
@@ -359,7 +372,7 @@ const AppProvider = ({ children }) => {
     dispatch({ type: CREATE_JOB_BEGIN })
     try {
       const { position, company, jobLocation, jobType, status } = state
-  
+      
       await authFetch.post('/jobs', {
         company,
         position,
@@ -378,10 +391,35 @@ const AppProvider = ({ children }) => {
     }
     setTimeout(()=>{clearAlert()},3000)
   }
+  
+  // GET ALL Jobs
+  //---------------------------------
+  const getJobs = async () => {
+    dispatch({ type: GET_JOBS_BEGIN })
+    try {
+      const { data } = await authFetch("/jobs")
+      const { jobs } = data
+      console.log(data)
+      
+      dispatch({ type: GET_JOBS_SUCCESS, payload: { jobs }})
+    } catch (error) {
+      console.log(error.response)
+      logOut()
+    }
+    clearAlert()
+  }
+
+  const setEditJob = (id) => {
+    console.log("delete", id);
+  }
+  
+  const deleteJob = (id) => {
+    console.log("delete", id);
+  }
 
 
   return (
-    <AppContext.Provider value={{...state, displayAlert, clearAlert, registerUser, loginUser, toggleSidebar, logOut, updateUser, handleChange, createJob}}>
+    <AppContext.Provider value={{...state, displayAlert, clearAlert, registerUser, loginUser, toggleSidebar, logOut, updateUser, handleChange, createJob, getJobs, setEditJob, deleteJob}}>
       {children}
     </AppContext.Provider>
   )

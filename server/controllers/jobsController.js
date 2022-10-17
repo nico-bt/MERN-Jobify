@@ -29,9 +29,10 @@ const deleteJob = (req, res) => {
 const getAllJobs = async (req, res) => {
     try {
         const jobs = await Job.find({createdBy:req.userId})
-        res.json(jobs)
+        res.json({jobs})
     } catch (error) {
-        console.log(error);   
+        console.log(error);
+        res.status(400).json(error)
     }
 }
 
