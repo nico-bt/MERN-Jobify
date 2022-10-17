@@ -23,6 +23,14 @@ const UPDATE_USER_BEGIN = 'UPDATE_USER_BEGIN'
 const UPDATE_USER_SUCCESS = 'UPDATE_USER_SUCCESS'
 const UPDATE_USER_ERROR = 'UPDATE_USER_ERROR'
 
+const HANDLE_CHANGE = 'HANDLE_CHANGE'
+const CLEAR_VALUES = 'CLEAR_VALUES'
+
+const CREATE_JOB_BEGIN = 'CREATE_JOB_BEGIN'
+const CREATE_JOB_SUCCESS = 'CREATE_JOB_SUCCESS'
+const CREATE_JOB_ERROR = 'CREATE_JOB_ERROR'
+
+
 // Reducer
 // ***********************************************************
 const reducer = (state, action) => {
@@ -134,6 +142,36 @@ const reducer = (state, action) => {
             alertText: action.payload.msg,
           }
 
+          case HANDLE_CHANGE:
+            return {
+              ...state,
+              [action.payload.name]: action.payload.value
+            }
+
+          case CLEAR_VALUES:
+            return { ...state, ...initialState }
+
+          case CREATE_JOB_BEGIN:
+            return { ...state, isLoading: true }
+          
+          case CREATE_JOB_SUCCESS:
+            return {
+              ...state,
+              isLoading: false,
+              showAlert: true,
+              alertType: 'success',
+              alertText: 'New Job Created!',
+            }
+          
+          case CREATE_JOB_ERROR:
+            return {
+              ...state,
+              isLoading: false,
+              showAlert: true,
+              alertType: 'danger',
+              alertText: action.payload.msg,
+            }
+
         default:
             break;
     }
@@ -153,8 +191,18 @@ const initialState = {
   user: user? JSON.parse(user) : null,
   token: token,
   userLocation: user? JSON.parse(user).location : "",
-  jobLocation: "",
-  showSidebar: false
+  showSidebar: false,
+  // For adding job
+  jobLocation: user? JSON.parse(user).location : "",
+  isEditing: false,
+  editJobId: '',
+  position: '',
+  company: '',
+  // jobLocation
+  jobTypeOptions: ['full-time', 'part-time', 'remote', 'internship'],
+  jobType: 'full-time',
+  statusOptions: ['pending', 'interview', 'declined'],
+  status: 'pending',
 }
 
 const AppContext = React.createContext()
@@ -297,10 +345,43 @@ const AppProvider = ({ children }) => {
   const toggleSidebar = () => {
     dispatch({type: TOGGLE_SIDEBAR})
   }
+  
+  
+  // Handle inputs from add Job
+  //---------------------------------
+  const handleChange = ({name, value}) => {
+    dispatch({type: HANDLE_CHANGE, payload:{name, value}})
+  }
+
+  // ADD Job
+  //---------------------------------
+  const createJob = async () => {
+    dispatch({ type: CREATE_JOB_BEGIN })
+    try {
+      const { position, company, jobLocation, jobType, status } = state
+  
+      await authFetch.post('/jobs', {
+        company,
+        position,
+        jobLocation,
+        jobType,
+        status,
+      })
+      dispatch({ type: CLEAR_VALUES })
+      dispatch({type: CREATE_JOB_SUCCESS})
+    } catch (error) {
+      if (error.response.status === 401) return
+      dispatch({
+        type: CREATE_JOB_ERROR,
+        payload: { msg: error.response.data.msg },
+      })
+    }
+    setTimeout(()=>{clearAlert()},3000)
+  }
 
 
   return (
-    <AppContext.Provider value={{...state, displayAlert, clearAlert, registerUser, loginUser, toggleSidebar, logOut, updateUser}}>
+    <AppContext.Provider value={{...state, displayAlert, clearAlert, registerUser, loginUser, toggleSidebar, logOut, updateUser, handleChange, createJob}}>
       {children}
     </AppContext.Provider>
   )
