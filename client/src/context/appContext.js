@@ -35,6 +35,11 @@ const GET_JOBS_SUCCESS = 'GET_JOBS_SUCCESS'
 
 const SET_EDIT_JOB = 'SET_EDIT_JOB'
 
+const DELETE_JOB_BEGIN = 'DELETE_JOB_BEGIN'
+
+const EDIT_JOB_BEGIN = 'EDIT_JOB_BEGIN'
+const EDIT_JOB_SUCCESS = 'EDIT_JOB_SUCCESS'
+const EDIT_JOB_ERROR = 'EDIT_JOB_ERROR'
 
 // Reducer
 // ***********************************************************
@@ -201,6 +206,30 @@ const reducer = (state, action) => {
               status,
             }
 
+          case EDIT_JOB_BEGIN:
+            return { ...state, isLoading: true}
+
+          case EDIT_JOB_SUCCESS:
+            return {
+              ...state,
+              isLoading: false,
+              showAlert: true,
+              alertType: "success",
+              alertText: "Job Updated!"              
+            }
+
+          case EDIT_JOB_ERROR:
+            return {
+              ...state,
+              isLoading: false,
+              showAlert: true,
+              alertType: "danger",
+              alertText: action.payload.msg
+            }
+          
+          case DELETE_JOB_BEGIN:
+            return { ...state, isLoading: true }
+
         default:
           break;
     }
@@ -283,6 +312,11 @@ const AppProvider = ({ children }) => {
     dispatch({type: CLEAR_ALERT})
   }
   
+  // Clear values, back to initial state
+  const clearValues = () => {
+    dispatch({type: CLEAR_VALUES})
+  }
+
   //Local storage functions:
   //---------------------------------
   const addUserToLocalStorage = ({user, token, location}) => {
@@ -426,24 +460,51 @@ const AppProvider = ({ children }) => {
   
   // EDIT Job
   //---------------------------------
+  // Get data and populate form to edit
   const setEditJob = (id) => {
     dispatch({ type: SET_EDIT_JOB, payload: { id } })
   }
-  const editJob = () => {
-    console.log('edit job')
-    console.log({id: state.editJobId})
-    console.log({position: state.position})
-  }
   
+  // Edit request to update in db
+  const editJob = async () => {
+    dispatch({type: EDIT_JOB_BEGIN})
+    try {
+      const {position, company, jobLocation, jobType, status} = state
+
+      const editedJob = await authFetch.patch(`/jobs/${state.editJobId}`, { position, company, jobLocation, jobType, status })
+      
+      console.log(editedJob);
+
+      dispatch({type: CLEAR_VALUES})
+      dispatch({type: EDIT_JOB_SUCCESS})
+      setTimeout(() => {
+        clearAlert()
+      }, 3000);
+    } catch (error) {
+      // 401 Managed by axios.interceptor --> Take you to login page
+      if (error.response.status === 401) {
+        return
+      }
+      dispatch({ type: EDIT_JOB_ERROR, payload: {msg: error.response.data.msg} })
+    }
+  }
+
   // DELETE Job
   //---------------------------------
-  const deleteJob = (id) => {
+  const deleteJob = async (id) => {
     console.log("delete", id);
+    dispatch({type: DELETE_JOB_BEGIN})
+    try {
+      await authFetch.delete(`/jobs/${id}`)
+      getJobs()
+    } catch (error) {
+      logOut()
+    }
   }
 
 
   return (
-    <AppContext.Provider value={{...state, displayAlert, clearAlert, registerUser, loginUser, toggleSidebar, logOut, updateUser, handleChange, createJob, getJobs, setEditJob, editJob, deleteJob}}>
+    <AppContext.Provider value={{...state, displayAlert, clearAlert, registerUser, loginUser, toggleSidebar, logOut, updateUser, handleChange, createJob, getJobs, setEditJob, editJob, deleteJob, clearValues}}>
       {children}
     </AppContext.Provider>
   )

@@ -17,7 +17,8 @@ const AddJob = () => {
     statusOptions,
     handleChange,
     createJob,
-    editJob
+    editJob,
+    clearValues
   } = useAppContext()
 
   const handleSubmit = (e) => {
@@ -110,8 +111,10 @@ const AddJob = () => {
 
           <div className='btn-container'>
             <button className='btn btn-block submit-btn' type='submit'onClick={handleSubmit} disabled={isLoading}>
-              submit
+              {isEditing? "Edit" : "Add"}
             </button>
+
+            {isEditing && <button className='btn btn-block clear-btn' onClick={clearValues} >Cancel</button>}
           </div>
 
         </div>
