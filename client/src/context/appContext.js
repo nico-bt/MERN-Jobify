@@ -33,6 +33,8 @@ const CREATE_JOB_ERROR = 'CREATE_JOB_ERROR'
 const GET_JOBS_BEGIN = 'GET_JOBS_BEGIN'
 const GET_JOBS_SUCCESS = 'GET_JOBS_SUCCESS'
 
+const SET_EDIT_JOB = 'SET_EDIT_JOB'
+
 
 // Reducer
 // ***********************************************************
@@ -183,6 +185,20 @@ const reducer = (state, action) => {
               ...state,
               isLoading: false,
               jobs: action.payload.jobs,
+            }
+
+          case SET_EDIT_JOB:
+            const job = state.jobs.find((job) => job._id === action.payload.id)
+            const { _id, position, company, jobLocation, jobType, status } = job
+            return {
+              ...state,
+              isEditing: true,
+              editJobId: _id,
+              position,
+              company,
+              jobLocation,
+              jobType,
+              status,
             }
 
         default:
@@ -399,7 +415,6 @@ const AppProvider = ({ children }) => {
     try {
       const { data } = await authFetch("/jobs")
       const { jobs } = data
-      console.log(data)
       
       dispatch({ type: GET_JOBS_SUCCESS, payload: { jobs }})
     } catch (error) {
@@ -408,18 +423,27 @@ const AppProvider = ({ children }) => {
     }
     clearAlert()
   }
-
+  
+  // EDIT Job
+  //---------------------------------
   const setEditJob = (id) => {
-    console.log("delete", id);
+    dispatch({ type: SET_EDIT_JOB, payload: { id } })
+  }
+  const editJob = () => {
+    console.log('edit job')
+    console.log({id: state.editJobId})
+    console.log({position: state.position})
   }
   
+  // DELETE Job
+  //---------------------------------
   const deleteJob = (id) => {
     console.log("delete", id);
   }
 
 
   return (
-    <AppContext.Provider value={{...state, displayAlert, clearAlert, registerUser, loginUser, toggleSidebar, logOut, updateUser, handleChange, createJob, getJobs, setEditJob, deleteJob}}>
+    <AppContext.Provider value={{...state, displayAlert, clearAlert, registerUser, loginUser, toggleSidebar, logOut, updateUser, handleChange, createJob, getJobs, setEditJob, editJob, deleteJob}}>
       {children}
     </AppContext.Provider>
   )
