@@ -13,14 +13,14 @@ const NavLinks = ({ toggleSidebar }) => {
           <NavLink
             to={path}
             key={id}
-            // onClick={toggleSidebar}
+            onClick={toggleSidebar}
             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
             end={true}
             // To delete Edit state values in context, and clear the form values for Add Job link
-            onClick={() =>{ 
-              if(path=="add-job") { clearValues() 
-              }
-            }}
+            // onClick={() =>{ 
+            //   if(path=="add-job") { clearValues() 
+            //   }
+            // }}
           >
             <span className='icon'>{icon}</span>
             {text}

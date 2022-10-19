@@ -1,10 +1,9 @@
 import React from 'react'
-import {SearchContainer, JobsContainer} from "../../components"
+import { JobsContainer} from "../../components"
 
 function AllJobs() {
   return (
     <>
-      <SearchContainer />
       <JobsContainer />
     </>
   )

@@ -48,7 +48,7 @@ function Register() {
   // If user is returned from de appContext, redirect to home
   useEffect(() => {
     if(user) {
-      navigate("/")
+      navigate("/all-jobs")
     }
   }, [user, navigate])
   
